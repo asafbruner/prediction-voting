@@ -2,7 +2,7 @@ import { Question } from '@/lib/types';
 
 export const initialQuestions: Question[] = [
     {
-        id: 3,
+        id: 1,
         title: "AI in Healthcare",
         description: "Which area will AI impact the most in healthcare by 2025?",
         options: ["Diagnostics", "Drug Discovery", "Personalized Medicine", "Administrative Tasks"],
@@ -12,10 +12,10 @@ export const initialQuestions: Question[] = [
           "Personalized Medicine": 0,
           "Administrative Tasks": 0
         },
-        order: 2
+        order: 1
       },
       {
-        id: 4,
+        id: 2,
         title: "Autonomous Vehicles",
         description: "Will fully autonomous cars become mainstream by 2025?",
         options: ["Yes", "No", "In Specific Regions", "Only for Commercial Use"],
@@ -25,10 +25,10 @@ export const initialQuestions: Question[] = [
           "In Specific Regions": 0,
           "Only for Commercial Use": 0
         },
-        order: 3
+        order: 2
       },
       {
-        id: 5,
+        id: 3,
         title: "Generative AI Tools",
         description: "Which industry will adopt generative AI tools the fastest in 2025?",
         options: ["Marketing", "Software Development", "Education", "Entertainment"],
@@ -38,10 +38,10 @@ export const initialQuestions: Question[] = [
           "Education": 0,
           "Entertainment": 0
         },
-        order: 4
+        order: 3
       },
       {
-        id: 6,
+        id: 4,
         title: "Cloud Computing Evolution",
         description: "Which cloud model will dominate in 2025?",
         options: ["Public Cloud", "Private Cloud", "Hybrid Cloud", "Edge Computing"],
@@ -51,10 +51,10 @@ export const initialQuestions: Question[] = [
           "Hybrid Cloud": 0,
           "Edge Computing": 0
         },
-        order: 5
+        order: 4
       },
       {
-        id: 7,
+        id: 5,
         title: "AI Ethics",
         description: "What will be the biggest ethical challenge for AI in 2025?",
         options: ["Bias", "Data Privacy", "Job Displacement", "Autonomy in Decision-Making"],
@@ -64,10 +64,10 @@ export const initialQuestions: Question[] = [
           "Job Displacement": 0,
           "Autonomy in Decision-Making": 0
         },
-        order: 6
+        order: 5
       },
       {
-        id: 8,
+        id: 6,
         title: "Wearable Technology",
         description: "What will be the most popular wearable technology in 2025?",
         options: ["Smartwatches", "Smart Glasses", "Health Trackers", "AR Devices"],
@@ -77,6 +77,6 @@ export const initialQuestions: Question[] = [
           "Health Trackers": 0,
           "AR Devices": 0
         },
-        order: 7
+        order: 6
       }
   ];
