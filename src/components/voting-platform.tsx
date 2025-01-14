@@ -6,6 +6,7 @@ import { useUser } from './user-context';
 import LoginScreen from './login-screen';
 import { Question } from '@/lib/types';
 import { pusherClient } from '@/lib/pusher';
+import { initialQuestions } from '../lib/initial-questions';  
 
 type VoteUpdateData = {
   questions: Question[];
@@ -25,34 +26,7 @@ type ResetSessionData = {
   questions: Question[];
 };
 
-const initialQuestions: Question[] = [
-    {
-      id: 1,
-      title: "2024 Tech Trends",
-      description: "What will be the most impactful technology in 2024?",
-      options: ["AI", "Quantum Computing", "AR/VR", "Blockchain"],
-      votes: {
-        "AI": 0,
-        "Quantum Computing": 0,
-        "AR/VR": 0,
-        "Blockchain": 0
-      },
-      order: 0
-    },
-    {
-      id: 2,
-      title: "Future of Work",
-      description: "How will most people work in 2025?",
-      options: ["Remote", "Hybrid", "Office", "AI-Assisted"],
-      votes: {
-        "Remote": 0,
-        "Hybrid": 0,
-        "Office": 0,
-        "AI-Assisted": 0
-      },
-      order: 1
-    }
-  ];
+
 
 export default function VotingPlatform() {
   const { user, logout } = useUser();
