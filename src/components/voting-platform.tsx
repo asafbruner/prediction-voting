@@ -67,22 +67,31 @@ export default function VotingPlatform() {
   }, []);
 
   const handleVote = async (option: string) => {
-    if (!currentQuestion || userVotes[currentQuestion.id]) return;
-
+    if (!currentQuestion) return;
+  
     try {
+      // Create updatedQuestions with the new vote
       const updatedQuestions = questions.map(q => {
         if (q.id === currentQuestion.id) {
+          // If user already voted, decrement their previous vote
+          const previousVote = userVotes[currentQuestion.id];
+          const updatedVotes = { ...q.votes };
+          
+          if (previousVote) {
+            updatedVotes[previousVote] = (updatedVotes[previousVote] || 1) - 1;
+          }
+          
+          // Increment the new vote
+          updatedVotes[option] = (updatedVotes[option] || 0) + 1;
+  
           return {
             ...q,
-            votes: {
-              ...q.votes,
-              [option]: (q.votes[option] || 0) + 1
-            }
+            votes: updatedVotes
           };
         }
         return q;
       });
-
+  
       await fetch('/api/vote', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -91,7 +100,7 @@ export default function VotingPlatform() {
           currentQuestionIndex
         }),
       });
-
+  
       setQuestions(updatedQuestions);
       setUserVotes({ ...userVotes, [currentQuestion.id]: option });
     } catch (error) {
@@ -253,18 +262,18 @@ export default function VotingPlatform() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {currentQuestion.options.map((option) => (
                   <button
-                    key={option}
-                    onClick={() => handleVote(option)}
-                    disabled={Boolean(userVotes[currentQuestion.id]) || showResults}
-                    className={`p-6 rounded-xl text-center text-lg font-medium transition-all duration-200
+                  key={option}
+                  onClick={() => handleVote(option)}
+                  disabled={showResults}
+                  className={`p-6 rounded-xl text-center text-lg font-medium transition-all duration-200
                     ${userVotes[currentQuestion.id] === option
                       ? 'bg-blue-600 text-white'
                       : 'bg-gray-700 hover:bg-gray-600 text-gray-100'
                     } disabled:opacity-50 disabled:cursor-not-allowed
                     transform hover:scale-[1.02] active:scale-[0.98]`}
-                  >
-                    {option}
-                  </button>
+                >
+                  {option}
+                </button>
                 ))}
               </div>
             )}
