@@ -35,9 +35,40 @@ export default function VotingPlatform() {
   const [showResults, setShowResults] = useState(false);
   const [userVotes, setUserVotes] = useState<Record<number, string>>({});
 
+  // Request current state when joining
+  useEffect(() => {
+    if (user?.isAdmin) {
+      // Admin provides the current state
+      fetch('/api/sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          questions,
+          currentQuestionIndex,
+          showResults
+        }),
+      });
+    }
+  }, [user]); // Only run when user logs in
+
+  // Listen for state updates, including sync
   useEffect(() => {
     const channel = pusherClient.subscribe('voting-channel');
 
+    // Add new sync-state event listener
+    channel.bind('sync-state', (data: { 
+      questions: Question[]; 
+      currentQuestionIndex: number; 
+      showResults: boolean; 
+    }) => {
+      if (!user?.isAdmin) { // Only non-admin users should sync
+        setQuestions(data.questions);
+        setCurrentQuestionIndex(data.currentQuestionIndex);
+        setShowResults(data.showResults);
+      }
+    });
+
+    // Existing event listeners
     channel.bind('vote-update', (data: VoteUpdateData) => {
       setQuestions(data.questions);
     });
@@ -64,7 +95,7 @@ export default function VotingPlatform() {
     return () => {
       pusherClient.unsubscribe('voting-channel');
     };
-  }, []);
+  }, [user]); // Added user to dependencies
 
   const handleVote = async (option: string) => {
     if (!currentQuestion) return;
