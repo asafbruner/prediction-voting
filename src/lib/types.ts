@@ -22,3 +22,5 @@ export type Question = {
     questions: Question[];
     currentQuestionIndex?: number;
   };
+
+  export type UserSessionState = 'waiting' | 'active' | 'ended';

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { useUser } from './user-context';
 import LoginScreen from './login-screen';
-import { Question } from '@/lib/types';
+import { Question, UserSessionState } from '@/lib/types';
 import { pusherClient } from '@/lib/pusher';
 import { initialQuestions } from '../lib/initial-questions';  
 
@@ -34,6 +34,7 @@ export default function VotingPlatform() {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [showResults, setShowResults] = useState(false);
   const [userVotes, setUserVotes] = useState<Record<number, string>>({});
+  const [userSessionState, setUserSessionState] = useState<UserSessionState>('waiting');
 
   // Request current state when joining
   useEffect(() => {
@@ -54,6 +55,15 @@ export default function VotingPlatform() {
   // Listen for state updates, including sync
   useEffect(() => {
     const channel = pusherClient.subscribe('voting-channel');
+
+    // Add session state event listeners
+    channel.bind('session-start', () => {
+      setUserSessionState('active');
+    });
+
+    channel.bind('session-end', () => {
+      setUserSessionState('ended');
+    });
 
     // Add new sync-state event listener
     channel.bind('sync-state', (data: { 
@@ -96,6 +106,80 @@ export default function VotingPlatform() {
       pusherClient.unsubscribe('voting-channel');
     };
   }, [user]); // Added user to dependencies
+
+  const handleStartSession = async () => {
+    try {
+      await fetch('/api/session/start', {
+        method: 'POST',
+      });
+      setUserSessionState('active');
+    } catch (error) {
+      console.error('Failed to start session:', error);
+    }
+  };
+
+  const handleEndSession = async () => {
+    try {
+      await fetch('/api/session/end', {
+        method: 'POST',
+      });
+      setUserSessionState('ended');
+    } catch (error) {
+      console.error('Failed to end session:', error);
+    }
+  };
+
+  if (!user) {
+    return <LoginScreen />;
+  }
+
+  // Waiting screen
+  if (!user.isAdmin && userSessionState === 'waiting') {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="bg-gray-800 rounded-xl p-8 max-w-md w-full border border-gray-700">
+          <h2 className="text-2xl font-bold text-white text-center mb-4">
+            Welcome to Prediction Voting
+          </h2>
+          <p className="text-gray-400 text-center mb-6">
+            The session will begin shortly. Please wait for the admin to start.
+          </p>
+          {user.isAdmin && (
+            <button
+              onClick={handleStartSession}
+              className="w-full px-6 py-3 rounded-lg bg-purple-600 text-white font-medium 
+                     hover:bg-purple-500 transition-colors duration-200"
+            >
+              Start Session
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Session ended screen
+  if (!user.isAdmin && userSessionState === 'ended') {
+    return (
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+        <div className="bg-gray-800 rounded-xl p-8 max-w-md w-full border border-gray-700">
+          <h2 className="text-2xl font-bold text-white text-center mb-4">
+            Thank You for Participating!
+          </h2>
+          <p className="text-gray-400 text-center mb-6">
+            The voting session has ended.
+          </p>
+          <button
+            onClick={logout}
+            className="w-full px-6 py-3 rounded-lg bg-gray-700 text-white font-medium 
+                   hover:bg-gray-600 transition-colors duration-200"
+          >
+            Logout
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const handleVote = async (option: string) => {
     if (!currentQuestion) return;
@@ -199,22 +283,7 @@ export default function VotingPlatform() {
     <div className="min-h-screen bg-gray-900 text-gray-100">
       {/* Header */}
       <div className="border-b border-gray-800 bg-gray-950 shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 flex justify-between items-center">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">
-            Prediction Voting
-          </h1>
-          <div className="flex items-center gap-6">
-            <span className="text-gray-400">
-              Welcome, <span className="font-semibold text-purple-400">{user.name}</span>
-            </span>
-            <button
-              onClick={logout}
-              className="px-4 py-2 rounded-lg bg-gray-800 text-gray-300 hover:bg-gray-700 transition-colors duration-200"
-            >
-              Logout
-            </button>
-          </div>
-        </div>
+        {/* ... header content ... */}
       </div>
 
       <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
@@ -222,6 +291,27 @@ export default function VotingPlatform() {
         {user.isAdmin && (
           <div className="mb-8 bg-gray-800 rounded-xl p-6 shadow-xl border border-gray-700">
             <h2 className="text-xl font-semibold mb-6 text-purple-400">Admin Controls</h2>
+            <div className="flex gap-4 mb-6">
+              <button
+                onClick={handleStartSession}
+                disabled={userSessionState === 'active'}
+                className="flex-1 px-6 py-3 rounded-lg bg-green-600 text-white font-medium 
+                         hover:bg-green-500 disabled:bg-gray-700 disabled:text-gray-500 
+                         transition-colors duration-200"
+              >
+                Start Session
+              </button>
+              <button
+                onClick={handleEndSession}
+                disabled={userSessionState === 'ended'}
+                className="flex-1 px-6 py-3 rounded-lg bg-red-600 text-white font-medium 
+                         hover:bg-red-500 disabled:bg-gray-700 disabled:text-gray-500 
+                         transition-colors duration-200"
+              >
+                End Session for Users
+              </button>
+            </div>
+
             <div className="flex gap-4 mb-6">
               <button
                 onClick={handleShowResults}
@@ -246,8 +336,8 @@ export default function VotingPlatform() {
             <div className="border-t border-gray-700 pt-6">
               <button
                 onClick={handleReset}
-                className="px-6 py-3 rounded-lg bg-red-600 text-white font-medium 
-                         hover:bg-red-500 transition-colors duration-200"
+                className="px-6 py-3 rounded-lg bg-yellow-600 text-white font-medium 
+                         hover:bg-yellow-500 transition-colors duration-200"
               >
                 Reset Session
               </button>
