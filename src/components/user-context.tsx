@@ -9,7 +9,7 @@ interface User {
 
 interface UserContextType {
   user: User | null;
-  login: (username: string) => void;
+  login: (username: string, isAdmin: boolean) => void;
   logout: () => void;
 }
 
@@ -18,10 +18,10 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 export function UserProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
 
-  const login = (username: string) => {
+  const login = (username: string, isAdmin: boolean) => {
     setUser({
       name: username,
-      isAdmin: username.toLowerCase() === 'admin'
+      isAdmin
     });
   };
 
